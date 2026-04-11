@@ -1,0 +1,246 @@
+# Profile Enhancement Merge Template for Clash Verge
+
+profile:
+  store-selected: true
+
+proxy-groups:
+  - name: Без Proxy
+    icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Bypass.png
+    type: select
+    hidden: true
+    proxies:
+      - DIRECT
+  - name: Discord
+    icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Discord.png
+    type: select
+    proxies:
+      - Proxy
+      - Без Proxy
+
+rule-providers:
+  test1:
+    type: file
+    path: ./rule-sets/test.yaml
+    behavior: classical
+    format: yaml
+  category-ru:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://raw.githubusercontent.com/hydraponique/roscomvpn-geosite/release/mihomo/category-ru.mrs
+    path: ./rule-sets/category-ru.mrs
+    interval: 86400
+  direct-ips:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    url: https://raw.githubusercontent.com/hydraponique/roscomvpn-geoip/release/mihomo/direct.mrs
+    path: ./rule-sets/direct-ips.mrs
+    interval: 86400
+  ru-apps:
+    type: http
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/legiz-ru/mihomo-rule-sets/main/other/ru-app-list.yaml
+    path: ./rule-sets/ru-apps.yaml
+  apple:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://raw.githubusercontent.com/hydraponique/roscomvpn-geosite/release/mihomo/apple.mrs
+    path: ./rule-sets/apple.mrs
+    interval: 86400
+  youtube:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://raw.githubusercontent.com/hydraponique/roscomvpn-geosite/release/mihomo/youtube.mrs
+    path: ./rule-sets/youtube.mrs
+    interval: 86400
+  private-domains:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://raw.githubusercontent.com/hydraponique/roscomvpn-geosite/release/mihomo/private.mrs
+    path: ./rule-sets/geosite-private.mrs
+    interval: 86400
+  private-ips:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    url: https://raw.githubusercontent.com/hydraponique/roscomvpn-geoip/release/mihomo/private.mrs
+    path: ./rule-sets/geoip-private.mrs
+    interval: 86400
+  discord_domains:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/discord.mrs
+    path: ./rule-sets/discord_domains.mrs
+    interval: 86400
+  discord_voiceips:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    url: https://raw.githubusercontent.com/legiz-ru/mihomo-rule-sets/main/other/discord-voice-ip-list.mrs
+    path: ./rule-sets/discord_voiceips.mrs
+    interval: 86400
+  refilter_domains:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://github.com/legiz-ru/mihomo-rule-sets/raw/main/re-filter/domain-rule.mrs
+    path: ./rule-sets/domain-rule.mrs
+    interval: 86400
+  refilter_ipsum:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    url: https://github.com/legiz-ru/mihomo-rule-sets/raw/main/re-filter/ip-rule.mrs
+    path: ./rule-sets/ip-rule.mrs
+    interval: 86400
+  telegram-ips:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    interval: 86400
+    url: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs
+    path: ./rule-sets/telegram-ips.mrs
+  telegram-domains:
+    type: http
+    behavior: domain
+    format: mrs
+    interval: 86400
+    url: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/telegram.mrs
+    path: ./rule-sets/telegram-domains.mrs
+  whatsapp:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://github.com/MetaCubeX/meta-rules-dat/raw/meta/geo/geosite/whatsapp.mrs
+    path: ./rule-sets/whatsapp.mrs
+  ai:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ai-!cn.mrs
+    path: ./rule-sets/ai.mrs
+    interval: 86400
+  torrent-trackers:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://github.com/legiz-ru/mihomo-rule-sets/raw/main/other/torrent-trackers.mrs
+    path: ./rule-sets/torrent-trackers.mrs
+    interval: 86400
+  torrent-websites:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://github.com/legiz-ru/mihomo-rule-sets/raw/main/other/torrent-websites.mrs
+    path: ./rule-sets/torrent-websites.mrs
+    interval: 86400
+  torrent-clients:
+    type: http
+    behavior: classical
+    format: yaml
+    url: https://github.com/legiz-ru/mihomo-rule-sets/raw/main/other/torrent-clients.yaml
+    path: ./rule-sets/torrent-clients.yaml
+    interval: 86400
+  games-direct:
+    type: http
+    behavior: classical
+    format: yaml
+    url: https://github.com/legiz-ru/mihomo-rule-sets/raw/main/other/games-direct.yaml
+    path: ./rule-sets/games-direct.yaml
+    interval: 86400
+  akamai:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    interval: 86400
+    url: https://github.com/PentiumB/CDN-RuleSet/releases/latest/download/akamai.mrs
+    path: ./rule-sets/akamai.mrs
+  amazon:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    interval: 86400
+    url: https://github.com/PentiumB/CDN-RuleSet/releases/latest/download/amazon.mrs
+    path: ./rule-sets/amazon.mrs
+  cloudflare:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    interval: 86400
+    url: https://github.com/PentiumB/CDN-RuleSet/releases/latest/download/cloudflare.mrs
+    path: ./rule-sets/cloudflare.mrs
+  datacamp:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    interval: 86400
+    url: https://github.com/PentiumB/CDN-RuleSet/releases/latest/download/datacamp.mrs
+    path: ./rule-sets/datacamp.mrs
+  fastly:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    interval: 86400
+    url: https://github.com/PentiumB/CDN-RuleSet/releases/latest/download/fastly.mrs
+    path: ./rule-sets/fastly.mrs
+  oracle:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    interval: 86400
+    url: https://github.com/PentiumB/CDN-RuleSet/releases/latest/download/oracle.mrs
+    path: ./rule-sets/oracle.mrs
+#  quic:
+#    type: inline
+#    behavior: classical
+#    payload:
+#      - AND,((NETWORK,udp),(DST-PORT,443))
+#  test:
+#    type: inline
+#    behavior: classical
+#    payload:
+#      - DOMAIN-SUFFIX,2ip.ru  
+
+
+rules:
+  # Локальная сеть
+  - RULE-SET,private-domains,DIRECT
+  - RULE-SET,private-ips,DIRECT,no-resolve
+
+  # VPN и удалённый доступ
+  - PROCESS-NAME-REGEX,(?i).*tailscale.*,DIRECT
+  - PROCESS-NAME-REGEX,(?i).*wireguard.*,DIRECT
+  - PROCESS-NAME-REGEX,(?i).*netbird.*,DIRECT
+  - PROCESS-NAME-REGEX,(?i).*anydesk.*,DIRECT
+  - PROCESS-NAME-REGEX,(?i).*rustdesk.*,DIRECT
+  - PROCESS-NAME-REGEX,(?i).*teamviewer.*,DIRECT
+
+  # Торренты
+  - RULE-SET,torrent-clients,DIRECT
+  - RULE-SET,torrent-trackers,DIRECT
+  - PROCESS-NAME-REGEX,(?i).*torrent.*,DIRECT
+
+  # Торрент-сайты (заблокированы в РФ)
+  - RULE-SET,torrent-websites,Proxy
+
+  # Игры
+  - RULE-SET,games-direct,DIRECT
+
+  # Блокировка QUIC (для VLESS Reality)
+#  - RULE-SET,quic,REJECT
+
+  # Discord
+  - AND,((NETWORK,udp),(DST-PORT,19200-19500)),Discord
+  - AND,((RULE-SET,discord_voiceips),(NETWORK,udp),(DST-PORT,50000-50100)),Discord
+ # - RULE-SET,discord_vc,Discord
+  - RULE-SET,discord_domains,Discord
+  - PROCESS-NAME-REGEX,(?i).*discord.*,Discord
+
+  # - RULE-SET,test1,DIRECT
+  - MATCH, Proxy
