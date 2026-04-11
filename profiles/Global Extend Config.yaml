@@ -16,11 +16,17 @@ proxy-groups:
     proxies:
       - Proxy
       - Без Proxy
+  - name: YouTube
+    icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/YouTube.png
+    type: select
+    proxies:
+      - Proxy
+      - Без Proxy
 
 rule-providers:
-  test1:
+  local_example:
     type: file
-    path: ./rule-sets/test.yaml
+    path: ./rule-sets/local_example.yaml
     behavior: classical
     format: yaml
   category-ru:
@@ -43,6 +49,7 @@ rule-providers:
     format: yaml
     url: https://raw.githubusercontent.com/legiz-ru/mihomo-rule-sets/main/other/ru-app-list.yaml
     path: ./rule-sets/ru-apps.yaml
+    interval: 86400 
   apple:
     type: http
     behavior: domain
@@ -57,6 +64,20 @@ rule-providers:
     url: https://raw.githubusercontent.com/hydraponique/roscomvpn-geosite/release/mihomo/youtube.mrs
     path: ./rule-sets/youtube.mrs
     interval: 86400
+  twitch:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://cdn.jsdelivr.net/gh/hydraponique/roscomvpn-geosite/release/mihomo/twitch.mrs
+    path: ./rule-sets/twitch.mrs
+    interval: 86400
+  twitch-ads:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://cdn.jsdelivr.net/gh/hydraponique/roscomvpn-geosite/release/mihomo/twitch-ads.mrs
+    path: ./rule-sets/twitch-ads.mrs
+    interval: 86400 
   private-domains:
     type: http
     behavior: domain
@@ -85,60 +106,18 @@ rule-providers:
     url: https://raw.githubusercontent.com/legiz-ru/mihomo-rule-sets/main/other/discord-voice-ip-list.mrs
     path: ./rule-sets/discord_voiceips.mrs
     interval: 86400
-  refilter_domains:
+  discord_vc:
     type: http
-    behavior: domain
-    format: mrs
-    url: https://github.com/legiz-ru/mihomo-rule-sets/raw/main/re-filter/domain-rule.mrs
-    path: ./rule-sets/domain-rule.mrs
-    interval: 86400
-  refilter_ipsum:
-    type: http
-    behavior: ipcidr
-    format: mrs
-    url: https://github.com/legiz-ru/mihomo-rule-sets/raw/main/re-filter/ip-rule.mrs
-    path: ./rule-sets/ip-rule.mrs
-    interval: 86400
-  telegram-ips:
-    type: http
-    behavior: ipcidr
-    format: mrs
-    interval: 86400
-    url: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs
-    path: ./rule-sets/telegram-ips.mrs
-  telegram-domains:
-    type: http
-    behavior: domain
-    format: mrs
-    interval: 86400
-    url: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/telegram.mrs
-    path: ./rule-sets/telegram-domains.mrs
-  whatsapp:
-    type: http
-    behavior: domain
-    format: mrs
-    url: https://github.com/MetaCubeX/meta-rules-dat/raw/meta/geo/geosite/whatsapp.mrs
-    path: ./rule-sets/whatsapp.mrs
-  ai:
-    type: http
-    behavior: domain
-    format: mrs
-    url: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ai-!cn.mrs
-    path: ./rule-sets/ai.mrs
-    interval: 86400
+    path: ./rule-sets/discord_vc.yaml
+    url: https://raw.githubusercontent.com/Shaldown/Clash-Verge-rev-configuration/refs/heads/main/rule-sets/discord_vc.yaml
+    behavior: classical
+    format: yaml
   torrent-trackers:
     type: http
     behavior: domain
     format: mrs
     url: https://github.com/legiz-ru/mihomo-rule-sets/raw/main/other/torrent-trackers.mrs
     path: ./rule-sets/torrent-trackers.mrs
-    interval: 86400
-  torrent-websites:
-    type: http
-    behavior: domain
-    format: mrs
-    url: https://github.com/legiz-ru/mihomo-rule-sets/raw/main/other/torrent-websites.mrs
-    path: ./rule-sets/torrent-websites.mrs
     interval: 86400
   torrent-clients:
     type: http
@@ -154,93 +133,49 @@ rule-providers:
     url: https://github.com/legiz-ru/mihomo-rule-sets/raw/main/other/games-direct.yaml
     path: ./rule-sets/games-direct.yaml
     interval: 86400
-  akamai:
+  quic:
     type: http
-    behavior: ipcidr
-    format: mrs
-    interval: 86400
-    url: https://github.com/PentiumB/CDN-RuleSet/releases/latest/download/akamai.mrs
-    path: ./rule-sets/akamai.mrs
-  amazon:
-    type: http
-    behavior: ipcidr
-    format: mrs
-    interval: 86400
-    url: https://github.com/PentiumB/CDN-RuleSet/releases/latest/download/amazon.mrs
-    path: ./rule-sets/amazon.mrs
-  cloudflare:
-    type: http
-    behavior: ipcidr
-    format: mrs
-    interval: 86400
-    url: https://github.com/PentiumB/CDN-RuleSet/releases/latest/download/cloudflare.mrs
-    path: ./rule-sets/cloudflare.mrs
-  datacamp:
-    type: http
-    behavior: ipcidr
-    format: mrs
-    interval: 86400
-    url: https://github.com/PentiumB/CDN-RuleSet/releases/latest/download/datacamp.mrs
-    path: ./rule-sets/datacamp.mrs
-  fastly:
-    type: http
-    behavior: ipcidr
-    format: mrs
-    interval: 86400
-    url: https://github.com/PentiumB/CDN-RuleSet/releases/latest/download/fastly.mrs
-    path: ./rule-sets/fastly.mrs
-  oracle:
-    type: http
-    behavior: ipcidr
-    format: mrs
-    interval: 86400
-    url: https://github.com/PentiumB/CDN-RuleSet/releases/latest/download/oracle.mrs
-    path: ./rule-sets/oracle.mrs
-#  quic:
-#    type: inline
-#    behavior: classical
-#    payload:
-#      - AND,((NETWORK,udp),(DST-PORT,443))
-#  test:
-#    type: inline
-#    behavior: classical
-#    payload:
-#      - DOMAIN-SUFFIX,2ip.ru  
-
+    path: ./rule-sets/quic.yaml
+    url: https://raw.githubusercontent.com/Shaldown/Clash-Verge-rev-configuration/refs/heads/main/rule-sets/quic.yaml
+    behavior: classical
+    format: yaml
+    interval: 86400 
 
 rules:
   # Локальная сеть
   - RULE-SET,private-domains,DIRECT
   - RULE-SET,private-ips,DIRECT,no-resolve
 
-  # VPN и удалённый доступ
-  - PROCESS-NAME-REGEX,(?i).*tailscale.*,DIRECT
-  - PROCESS-NAME-REGEX,(?i).*wireguard.*,DIRECT
-  - PROCESS-NAME-REGEX,(?i).*netbird.*,DIRECT
-  - PROCESS-NAME-REGEX,(?i).*anydesk.*,DIRECT
-  - PROCESS-NAME-REGEX,(?i).*rustdesk.*,DIRECT
-  - PROCESS-NAME-REGEX,(?i).*teamviewer.*,DIRECT
-
   # Торренты
   - RULE-SET,torrent-clients,DIRECT
   - RULE-SET,torrent-trackers,DIRECT
   - PROCESS-NAME-REGEX,(?i).*torrent.*,DIRECT
 
-  # Торрент-сайты (заблокированы в РФ)
-  - RULE-SET,torrent-websites,Proxy
-
   # Игры
   - RULE-SET,games-direct,DIRECT
 
   # Блокировка QUIC (для VLESS Reality)
-#  - RULE-SET,quic,REJECT
+  - RULE-SET,quic,REJECT
+
+  # YouTube
+  - RULE-SET,youtube,YouTube
+  - PROCESS-NAME-REGEX,(?i).*youtube.*,YouTube
+
+  # Twitch
+  - RULE-SET,twitch-ads,Proxy
+  - RULE-SET,twitch,Без Proxy
 
   # Discord
   - AND,((NETWORK,udp),(DST-PORT,19200-19500)),Discord
   - AND,((RULE-SET,discord_voiceips),(NETWORK,udp),(DST-PORT,50000-50100)),Discord
- # - RULE-SET,discord_vc,Discord
+  - RULE-SET,discord_vc,Discord
   - RULE-SET,discord_domains,Discord
   - PROCESS-NAME-REGEX,(?i).*discord.*,Discord
 
-  # - RULE-SET,test1,DIRECT
+  # СНГ сервисы
+  - RULE-SET,category-ru,Без Proxy
+  - RULE-SET,ru-apps,Без Proxy
+  - RULE-SET,apple,Без Proxy
+  - RULE-SET,direct-ips,Без Proxy,no-resolve
+
   - MATCH, Proxy

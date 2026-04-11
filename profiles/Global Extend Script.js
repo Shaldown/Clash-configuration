@@ -143,16 +143,24 @@ function makeFallbackGroup(name, filter) {
 // ─── Определение групп ───────────────────────────────────────────────────────
 
 const PROXY_GROUP = {
-  name: PROXY_GROUP_NAME, type: "select", proxies: [
+  name: PROXY_GROUP_NAME,
+  icon: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Proxy.png",
+  type: "select",
+  proxies: [
     ALL_SELECT_GROUP_NAME,
     COUNTRIES_GROUP_NAME,
     NON_RU_BY_URL_TEST_GROUP_NAME,
-    ALL_URL_TEST_GROUP_NAME,
-    RU_BY_URL_TEST_GROUP_NAME
+    // ALL_URL_TEST_GROUP_NAME,
+    // RU_BY_URL_TEST_GROUP_NAME
   ]
 };
 
-const ALL_GROUP = { ...BASE, name: ALL_SELECT_GROUP_NAME, type: "select", "exclude-type": undefined };
+const ALL_GROUP = {
+  ...BASE,
+  name: ALL_SELECT_GROUP_NAME,
+  icon: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Global.png",
+  type: "select", "exclude-type": undefined
+};
 
 const COUNTRY_AUTO_GROUPS = Object.entries(P).map(([name, country]) =>
   makeAutoGroup(`${name} ${flagFor(country)} [URL_TEST]`, { filter: filterFor(country) })
@@ -178,6 +186,7 @@ function main(config, profileName) {
   const countrySelectGroup = {
     name: COUNTRIES_GROUP_NAME,
     type: "select",
+    icon: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Europe_Map.png",
     proxies: filteredCountryAutoGroups.map(g => g.name),
   };
 
@@ -186,8 +195,8 @@ function main(config, profileName) {
     ALL_GROUP,
     countrySelectGroup,
     makeAutoGroup(NON_RU_BY_URL_TEST_GROUP_NAME, { "exclude-filter": filterFor(P.Russia, P.Belarus) }),
-    // makeAutoGroup(ALL_URL_TEST_GROUP_NAME),
-    // makeAutoGroup(RU_BY_URL_TEST_GROUP_NAME,{ filter: filterFor(P.Russia, P.Belarus) }),
+    makeAutoGroup(ALL_URL_TEST_GROUP_NAME),
+    makeAutoGroup(RU_BY_URL_TEST_GROUP_NAME, { filter: filterFor(P.Russia, P.Belarus) }),
     ...filteredCountryAutoGroups,
   ];
 
