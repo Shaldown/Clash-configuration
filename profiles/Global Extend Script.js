@@ -22,12 +22,12 @@ const BASE = {
   "include-all-proxies": true,
   url: TEST_URL,
   "max-failed-times": MAX_FAILED_TIMES,
-  lazy: LAZY
+  lazy: LAZY,
 };
 
 // ─── Паттерны стран ─────────────────────────────────────────────────────────
 
-const P = Object.freeze({
+const C = Object.freeze({
   Argentina: { patterns: ["\\bAR\\b", "Аргентина", "Argentina", "🇦🇷"] },
   Armenia: { patterns: ["\\bAM\\b", "Армения", "Armenia", "🇦🇲"] },
   Austria: { patterns: ["\\bAT\\b", "Австрия", "Austria", "🇦🇹"], isEU: true },
@@ -73,6 +73,97 @@ const P = Object.freeze({
   USA: { patterns: ["\\bUS\\b", "\\bUSA\\b", "Америка", "America", "🇺🇸"] },
 });
 
+// ─── Определение групп ───────────────────────────────────────────────────────
+
+const PROXY_GROUP = {
+  name: PROXY_GROUP_NAME,
+  icon: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Proxy.png",
+  type: "select",
+  proxies: [
+    ALL_SELECT_GROUP_NAME,
+    COUNTRIES_BY_URL_TEST_GROUP_NAME,
+    COUNTRIES_BY_FALLBACK_GROUP_NAME,
+    NON_RU_BY_URL_TEST_GROUP_NAME,
+    NON_RU_BY_FALLBACK_GROUP_NAME,
+    RU_BY_URL_TEST_GROUP_NAME,
+    RU_BY_FALLBACK_GROUP_NAME,
+  ],
+};
+
+const ALL_GROUP = {
+  ...BASE,
+  name: ALL_SELECT_GROUP_NAME,
+  icon: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Global.png",
+  type: "select",
+  "exclude-type": undefined,
+};
+
+const COUNTRY_AUTO_GROUPS = Object.entries(C).flatMap(([name, country]) =>
+  makeAutoGroup(`${name} ${flagFor(country)} [URL_TEST]`, { filter: filterFor(country) }),
+);
+
+const COUNTRY_FALLBACK_GROUPS = Object.entries(C).map(([name, country]) =>
+  makeFallbackGroup(`${name} ${flagFor(country)} [FALLBACK]`, { filter: filterFor(country) }),
+);
+
+// ─── Точка входа ─────────────────────────────────────────────────────────────
+
+function main(config, profileName) {
+  if (!config["proxy-groups"]) {
+    config["proxy-groups"] = [];
+  }
+
+  const proxies = (config.proxies ?? []).map((p) => p.name);
+
+  function hasMatches(group) {
+    if (!group.filter) return true;
+    const regex = new RegExp(group.filter.replace("(?i)", ""), "i");
+    return proxies.some((name) => regex.test(name));
+  }
+
+  const filteredCountryAutoGroups = COUNTRY_AUTO_GROUPS.filter(hasMatches);
+  const filteredCountryFallbackGroups = COUNTRY_FALLBACK_GROUPS.filter(hasMatches);
+
+  const countriesByUrlTestSelectGroup = {
+    name: COUNTRIES_BY_URL_TEST_GROUP_NAME,
+    type: "select",
+    icon: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Europe_Map.png",
+    proxies: filteredCountryAutoGroups.map((group) => group.name),
+  };
+
+  const countriesByFallbackSelectGroup = {
+    name: COUNTRIES_BY_FALLBACK_GROUP_NAME,
+    type: "select",
+    icon: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Europe_Map.png",
+    proxies: filteredCountryFallbackGroups.map((group) => group.name),
+  };
+
+  const groups = [
+    PROXY_GROUP,
+    ALL_GROUP,
+    countriesByUrlTestSelectGroup,
+    countriesByFallbackSelectGroup,
+    makeAutoGroup(NON_RU_BY_URL_TEST_GROUP_NAME, { "exclude-filter": filterFor(C.Russia, C.Belarus) }),
+    makeFallbackGroup(NON_RU_BY_FALLBACK_GROUP_NAME, { "exclude-filter": filterFor(C.Russia, C.Belarus) }),
+    makeAutoGroup(RU_BY_URL_TEST_GROUP_NAME, { filter: filterFor(C.Russia, C.Belarus) }),
+    makeFallbackGroup(RU_BY_FALLBACK_GROUP_NAME, { filter: filterFor(C.Russia, C.Belarus) }),
+    ...filteredCountryAutoGroups,
+    ...filteredCountryFallbackGroups,
+  ];
+
+  config["proxy-groups"].unshift(...groups);
+
+  if (!config.dns) {
+    config.dns = {};
+  }
+
+  config.dns["direct-nameserver"] = ["https://77.88.8.8/dns-query", "https://8.8.8.8/dns-query"];
+
+  config.dns["proxy-server-nameserver"] = ["1.1.1.1", "8.8.8.8"];
+
+  return config;
+}
+
 // ─── Утилиты ─────────────────────────────────────────────────────────────────
 
 function buildFilter(...patternArrays) {
@@ -80,36 +171,19 @@ function buildFilter(...patternArrays) {
 }
 
 function filterFor(...countries) {
-  return buildFilter(
-    ...countries.map((country) => country.patterns).filter(Boolean),
-  );
+  return buildFilter(...countries.map((country) => country.patterns).filter(Boolean));
 }
 
 function filterByProp(prop) {
-  const patterns = Object.values(P)
+  const patterns = Object.values(C)
     .filter((country) => country[prop])
     .map((country) => country.patterns);
   return buildFilter(...patterns);
 }
 
-function filterExclude(...countries) {
-  const patterns = countries
-    .flatMap((country) => country.patterns)
-    .join("|");
-  return `(?i)^((?!.*(?:${patterns})).)*$`;
-}
-
-function filterExcludeCountries(...excluded) {
-  const patterns = Object.values(P)
-    .filter(c => !excluded.includes(c))
-    .map(c => c.patterns);
-  return buildFilter(...patterns);
-}
-
 function flagFor(country) {
-  return country.patterns.find(p => /^\p{Emoji_Presentation}/u.test(p)) ?? "";
+  return country.patterns.find((pattern) => /^\p{Emoji_Presentation}/u.test(pattern)) ?? "";
 }
-
 
 // ─── Построители групп ───────────────────────────────────────────────────────
 
@@ -142,106 +216,4 @@ function makeFallbackGroup(name, groupOverride) {
     hidden: true,
     ...groupOverride,
   };
-}
-
-// ─── Определение групп ───────────────────────────────────────────────────────
-
-const PROXY_GROUP = {
-  name: PROXY_GROUP_NAME,
-  icon: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Proxy.png",
-  type: "select",
-  proxies: [
-    ALL_SELECT_GROUP_NAME,
-    COUNTRIES_BY_URL_TEST_GROUP_NAME,
-    COUNTRIES_BY_FALLBACK_GROUP_NAME,
-    NON_RU_BY_URL_TEST_GROUP_NAME,
-    NON_RU_BY_FALLBACK_GROUP_NAME,
-    // ALL_URL_TEST_GROUP_NAME,
-    RU_BY_URL_TEST_GROUP_NAME,
-    RU_BY_FALLBACK_GROUP_NAME
-  ]
-};
-
-const ALL_GROUP = {
-  ...BASE,
-  name: ALL_SELECT_GROUP_NAME,
-  icon: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Global.png",
-  type: "select", "exclude-type": undefined
-};
-
-const COUNTRY_AUTO_GROUPS = Object.entries(P).flatMap(([name, country]) =>
-  makeAutoGroup(`${name} ${flagFor(country)} [URL_TEST]`, { filter: filterFor(country) })
-);
-
-const COUNTRY_FALLBACK_GROUPS = Object.entries(P).map(([name, country]) =>
-  makeFallbackGroup(`${name} ${flagFor(country)} [FALLBACK]`, { filter: filterFor(country) })
-)
-
-// ─── Точка входа ─────────────────────────────────────────────────────────────
-
-function main(config, profileName) {
-  if (!config["proxy-groups"]) {
-    config["proxy-groups"] = [];
-  }
-
-  const proxies = (config.proxies ?? []).map(p => p.name);
-
-  function hasMatches(group) {
-    if (!group.filter) return true;
-    const re = new RegExp(group.filter.replace("(?i)", ""), "i");
-    return proxies.some(name => re.test(name));
-  }
-
-  const filteredCountryAutoGroups = COUNTRY_AUTO_GROUPS.filter(hasMatches);
-  const filteredCountryFallbackGroups = COUNTRY_FALLBACK_GROUPS.filter(hasMatches);
-
-  const countrieByUrlTestSelectGroup = {
-    name: COUNTRIES_BY_URL_TEST_GROUP_NAME,
-    type: "select",
-    icon: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Europe_Map.png",
-    proxies: filteredCountryAutoGroups.map(g => g.name),
-  };
-
-  const countrieByFallbackSelectGroup = {
-    name: COUNTRIES_BY_FALLBACK_GROUP_NAME,
-    type: "select",
-    icon: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Europe_Map.png",
-    proxies: filteredCountryFallbackGroups.map(g => g.name),
-  };
-
-  const groups = [
-    PROXY_GROUP,
-    ALL_GROUP,
-    countrieByUrlTestSelectGroup,
-    countrieByFallbackSelectGroup,
-    makeAutoGroup(NON_RU_BY_URL_TEST_GROUP_NAME, { "exclude-filter": filterFor(P.Russia, P.Belarus) }),
-    makeFallbackGroup(NON_RU_BY_FALLBACK_GROUP_NAME, { "exclude-filter": filterFor(P.Russia, P.Belarus) }),
-    makeAutoGroup(ALL_URL_TEST_GROUP_NAME),
-    makeAutoGroup(RU_BY_URL_TEST_GROUP_NAME, { filter: filterFor(P.Russia, P.Belarus) }),
-    makeFallbackGroup(RU_BY_FALLBACK_GROUP_NAME, { filter: filterFor(P.Russia, P.Belarus) }),
-    ...filteredCountryAutoGroups,
-    ...filteredCountryFallbackGroups,
-  ];
-
-  console.log(config["proxy-groups"])
-  console.log(groups)
-
-  // config["proxy-groups"] = groups;
-  config["proxy-groups"].unshift(...groups);
-
-  if (!config.dns) {
-    config.dns = {};
-  }
-
-  config.dns["direct-nameserver"] = [
-    "https://77.88.8.8/dns-query",
-    "https://8.8.8.8/dns-query",
-  ];
-
-  config.dns["proxy-server-nameserver"] = [
-    "1.1.1.1",
-    "8.8.8.8",
-  ];
-
-  return config;
 }
