@@ -8,11 +8,14 @@ const MAX_FAILED_TIMES = 5;
 const LAZY = false;
 
 const PROXY_GROUP_NAME = "Proxy";
-const COUNTRIES_GROUP_NAME = "Select country"
-const ALL_SELECT_GROUP_NAME = "All";
+const COUNTRIES_BY_URL_TEST_GROUP_NAME = "Select country [URL_TEST]";
+const COUNTRIES_BY_FALLBACK_GROUP_NAME = "Select country [FALLBACK]";
+const ALL_SELECT_GROUP_NAME = "All [MANUAL]";
 const NON_RU_BY_URL_TEST_GROUP_NAME = "Non RU/BY [URL_TEST]";
+const NON_RU_BY_FALLBACK_GROUP_NAME = "Non RU/BY [FALLBACK]";
 const ALL_URL_TEST_GROUP_NAME = "ALL [URL_TEST]";
 const RU_BY_URL_TEST_GROUP_NAME = "RU/BY [URL_TEST]";
+const RU_BY_FALLBACK_GROUP_NAME = "RU/BY [FALLBACK]";
 
 const BASE = {
   "exclude-type": "Shadowsocks",
@@ -130,13 +133,14 @@ function makeAutoGroup(name, groupOverride) {
   };
 }
 
-function makeFallbackGroup(name, filter) {
+function makeFallbackGroup(name, groupOverride) {
   return {
     ...BASE,
     name,
     type: "fallback",
     interval: FALLBACK_INTERVAL,
-    ...(filter ? { filter } : {}),
+    hidden: true,
+    ...groupOverride,
   };
 }
 
@@ -148,10 +152,13 @@ const PROXY_GROUP = {
   type: "select",
   proxies: [
     ALL_SELECT_GROUP_NAME,
-    COUNTRIES_GROUP_NAME,
+    COUNTRIES_BY_URL_TEST_GROUP_NAME,
+    COUNTRIES_BY_FALLBACK_GROUP_NAME,
     NON_RU_BY_URL_TEST_GROUP_NAME,
+    NON_RU_BY_FALLBACK_GROUP_NAME,
     // ALL_URL_TEST_GROUP_NAME,
-    // RU_BY_URL_TEST_GROUP_NAME
+    RU_BY_URL_TEST_GROUP_NAME,
+    RU_BY_FALLBACK_GROUP_NAME
   ]
 };
 
@@ -162,9 +169,13 @@ const ALL_GROUP = {
   type: "select", "exclude-type": undefined
 };
 
-const COUNTRY_AUTO_GROUPS = Object.entries(P).map(([name, country]) =>
+const COUNTRY_AUTO_GROUPS = Object.entries(P).flatMap(([name, country]) =>
   makeAutoGroup(`${name} ${flagFor(country)} [URL_TEST]`, { filter: filterFor(country) })
 );
+
+const COUNTRY_FALLBACK_GROUPS = Object.entries(P).map(([name, country]) =>
+  makeFallbackGroup(`${name} ${flagFor(country)} [FALLBACK]`, { filter: filterFor(country) })
+)
 
 // ─── Точка входа ─────────────────────────────────────────────────────────────
 
@@ -182,22 +193,34 @@ function main(config, profileName) {
   }
 
   const filteredCountryAutoGroups = COUNTRY_AUTO_GROUPS.filter(hasMatches);
+  const filteredCountryFallbackGroups = COUNTRY_FALLBACK_GROUPS.filter(hasMatches);
 
-  const countrySelectGroup = {
-    name: COUNTRIES_GROUP_NAME,
+  const countrieByUrlTestSelectGroup = {
+    name: COUNTRIES_BY_URL_TEST_GROUP_NAME,
     type: "select",
     icon: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Europe_Map.png",
     proxies: filteredCountryAutoGroups.map(g => g.name),
   };
 
+  const countrieByFallbackSelectGroup = {
+    name: COUNTRIES_BY_FALLBACK_GROUP_NAME,
+    type: "select",
+    icon: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Europe_Map.png",
+    proxies: filteredCountryFallbackGroups.map(g => g.name),
+  };
+
   const groups = [
     PROXY_GROUP,
     ALL_GROUP,
-    countrySelectGroup,
+    countrieByUrlTestSelectGroup,
+    countrieByFallbackSelectGroup,
     makeAutoGroup(NON_RU_BY_URL_TEST_GROUP_NAME, { "exclude-filter": filterFor(P.Russia, P.Belarus) }),
+    makeFallbackGroup(NON_RU_BY_FALLBACK_GROUP_NAME, { "exclude-filter": filterFor(P.Russia, P.Belarus) }),
     makeAutoGroup(ALL_URL_TEST_GROUP_NAME),
     makeAutoGroup(RU_BY_URL_TEST_GROUP_NAME, { filter: filterFor(P.Russia, P.Belarus) }),
+    makeFallbackGroup(RU_BY_FALLBACK_GROUP_NAME, { filter: filterFor(P.Russia, P.Belarus) }),
     ...filteredCountryAutoGroups,
+    ...filteredCountryFallbackGroups,
   ];
 
   console.log(config["proxy-groups"])
@@ -213,6 +236,11 @@ function main(config, profileName) {
   config.dns["direct-nameserver"] = [
     "https://77.88.8.8/dns-query",
     "https://8.8.8.8/dns-query",
+  ];
+
+  config.dns["proxy-server-nameserver"] = [
+    "1.1.1.1",
+    "8.8.8.8",
   ];
 
   return config;

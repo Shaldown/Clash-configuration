@@ -22,11 +22,17 @@ proxy-groups:
     proxies:
       - Proxy
       - Без Proxy
+  - name: Games
+    icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Game.png
+    type: select
+    proxies:
+      - Proxy
+      - Без Proxy
 
 rule-providers:
   local_example:
     type: file
-    path: ./rule-sets/local_example.yaml
+    path: ./rule-sets/local/example.yaml
     behavior: classical
     format: yaml
   category-ru:
@@ -35,6 +41,13 @@ rule-providers:
     format: mrs
     url: https://raw.githubusercontent.com/hydraponique/roscomvpn-geosite/release/mihomo/category-ru.mrs
     path: ./rule-sets/category-ru.mrs
+    interval: 86400
+  whitelist:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://cdn.jsdelivr.net/gh/hydraponique/roscomvpn-geosite/release/mihomo/whitelist.mrs
+    path: ./rule-sets/whitelist.mrs
     interval: 86400
   direct-ips:
     type: http
@@ -49,13 +62,27 @@ rule-providers:
     format: yaml
     url: https://raw.githubusercontent.com/legiz-ru/mihomo-rule-sets/main/other/ru-app-list.yaml
     path: ./rule-sets/ru-apps.yaml
-    interval: 86400 
+    interval: 86400
+  google-play:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://cdn.jsdelivr.net/gh/hydraponique/roscomvpn-geosite/release/mihomo/google-play.mrs
+    path: ./rule-sets/google-play.mrs
+    interval: 86400
   apple:
     type: http
     behavior: domain
     format: mrs
     url: https://raw.githubusercontent.com/hydraponique/roscomvpn-geosite/release/mihomo/apple.mrs
     path: ./rule-sets/apple.mrs
+    interval: 86400
+  microsoft:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://cdn.jsdelivr.net/gh/hydraponique/roscomvpn-geosite/release/mihomo/microsoft.mrs
+    path: ./rule-sets/microsoft.mrs
     interval: 86400
   youtube:
     type: http
@@ -77,7 +104,7 @@ rule-providers:
     format: mrs
     url: https://cdn.jsdelivr.net/gh/hydraponique/roscomvpn-geosite/release/mihomo/twitch-ads.mrs
     path: ./rule-sets/twitch-ads.mrs
-    interval: 86400 
+    interval: 86400
   private-domains:
     type: http
     behavior: domain
@@ -126,12 +153,33 @@ rule-providers:
     url: https://github.com/legiz-ru/mihomo-rule-sets/raw/main/other/torrent-clients.yaml
     path: ./rule-sets/torrent-clients.yaml
     interval: 86400
-  games-direct:
+  games:
     type: http
     behavior: classical
     format: yaml
-    url: https://github.com/legiz-ru/mihomo-rule-sets/raw/main/other/games-direct.yaml
-    path: ./rule-sets/games-direct.yaml
+    url: https://raw.githubusercontent.com/roscomvpn/custom-category/release/mihomo/games.yaml
+    path: ./rule-sets/games.yaml
+    interval: 86400
+  steam:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://cdn.jsdelivr.net/gh/hydraponique/roscomvpn-geosite/release/mihomo/steam.mrs
+    path: ./rule-sets/steam.mrs
+    interval: 86400
+  epicgames:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://cdn.jsdelivr.net/gh/hydraponique/roscomvpn-geosite/release/mihomo/epicgames.mrs
+    path: ./rule-sets/epicgames.mrs
+    interval: 86400
+  pinterest:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://cdn.jsdelivr.net/gh/hydraponique/roscomvpn-geosite/release/mihomo/pinterest.mrs
+    path: ./rule-sets/pinterest.mrs
     interval: 86400
   quic:
     type: http
@@ -139,7 +187,7 @@ rule-providers:
     url: https://raw.githubusercontent.com/Shaldown/Clash-Verge-rev-configuration/refs/heads/main/rule-sets/quic.yaml
     behavior: classical
     format: yaml
-    interval: 86400 
+    interval: 86400
 
 rules:
   # Локальная сеть
@@ -152,7 +200,9 @@ rules:
   - PROCESS-NAME-REGEX,(?i).*torrent.*,DIRECT
 
   # Игры
-  - RULE-SET,games-direct,DIRECT
+  - RULE-SET,games,Games
+  - RULE-SET,steam,Games
+  - RULE-SET,epicgames,Games
 
   # Блокировка QUIC (для VLESS Reality)
   - RULE-SET,quic,REJECT
@@ -172,10 +222,18 @@ rules:
   - RULE-SET,discord_domains,Discord
   - PROCESS-NAME-REGEX,(?i).*discord.*,Discord
 
+  # Обновления и пуши
+  - RULE-SET,google-play,Без Proxy
+  - RULE-SET,apple,Без Proxy
+  - RULE-SET,microsoft,Без Proxy
+
+  # Блокировка реклама Pinteres
+  - RULE-SET,pinterest,Без Proxy
+
   # СНГ сервисы
   - RULE-SET,category-ru,Без Proxy
+  - RULE-SET,whitelist,Без Proxy
   - RULE-SET,ru-apps,Без Proxy
-  - RULE-SET,apple,Без Proxy
   - RULE-SET,direct-ips,Без Proxy,no-resolve
 
   - MATCH, Proxy
