@@ -174,7 +174,12 @@ function setupGroups(config) {
     )
     .filter(hasMatchingProxies);
 
+  const proxyNameSet = new Set(proxyNames);
+  const isSubscriptionDefault = (g) =>
+    g.type === "select" && g.proxies?.length === proxyNames.length && g.proxies.every((p) => proxyNameSet.has(p));
+
   config["proxy-groups"] ??= [];
+  config["proxy-groups"] = config["proxy-groups"].filter((g) => !isSubscriptionDefault(g));
   config["proxy-groups"].unshift(
     {
       name: GN.proxy,
