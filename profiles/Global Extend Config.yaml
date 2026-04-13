@@ -3,6 +3,13 @@
 profile:
   store-selected: true
 
+proxy-groups:
+  - name: Example
+    type: select
+    proxies:
+      - Proxy
+      - Без Proxy
+
 rule-providers:
   local_example:
     type: file

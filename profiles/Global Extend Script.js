@@ -14,6 +14,8 @@ const CFG = Object.freeze({
 const GN = Object.freeze({
   proxy: "Proxy",
   direct: "Без Proxy",
+
+  // Выбор для сервисов
   discord: "Discord",
   youtube: "YouTube",
   games: "Games",
@@ -188,9 +190,6 @@ function setupGroups(config) {
         GN.ruFallback,
       ],
     },
-    { name: GN.discord, icon: ICONS.discord, type: "select", proxies: [GN.proxy, GN.direct] },
-    { name: GN.youtube, icon: ICONS.youtube, type: "select", proxies: [GN.proxy, GN.direct] },
-    { name: GN.games, icon: ICONS.games, type: "select", proxies: [GN.proxy, GN.direct] },
     { name: GN.direct, icon: ICONS.direct, type: "select", hidden: true, proxies: ["DIRECT"] },
 
     // Навигация по странам
@@ -198,14 +197,19 @@ function setupGroups(config) {
     { name: GN.countryUrlTest, icon: ICONS.map, type: "select", proxies: countryUrlTestGroups.map((g) => g.name) },
     { name: GN.countryFallback, icon: ICONS.map, type: "select", proxies: countryFallbackGroups.map((g) => g.name) },
 
-    // Агрегированные авто-группы
+    // Выбор для сервисов
+    { name: GN.discord, icon: ICONS.discord, type: "select", proxies: [GN.proxy, GN.direct] },
+    { name: GN.youtube, icon: ICONS.youtube, type: "select", proxies: [GN.proxy, GN.direct] },
+    { name: GN.games, icon: ICONS.games, type: "select", proxies: [GN.proxy, GN.direct] },
+
+    // Агрегированные авто-группы (скрыты)
     makeUrlTestGroup(GN.nonRuUrlTest, { "exclude-filter": filterFor(C.Russia, C.Belarus) }),
     makeFallbackGroup(GN.nonRuFallback, { "exclude-filter": filterFor(C.Russia, C.Belarus) }),
     makeUrlTestGroup(GN.allUrlTest),
     makeUrlTestGroup(GN.ruUrlTest, { filter: filterFor(C.Russia, C.Belarus) }),
     makeFallbackGroup(GN.ruFallback, { filter: filterFor(C.Russia, C.Belarus) }),
 
-    // Страны
+    // Страны (скрыты)
     ...countryUrlTestGroups,
     ...countryFallbackGroups,
   );
@@ -219,7 +223,7 @@ function setupDns(config) {
 }
 
 // ─── Настройка провайдеров правил ────────────────────────────────────────────
-// Документация: https://wiki.metacubex.one/config/rule-providers/
+// Документация: https://wiki.metacubex.one/en/config/rule-providers
 
 function setupRuleProviders(config) {
   const providerCommon = { type: "http", interval: 86400 };
@@ -392,7 +396,7 @@ function setupRuleProviders(config) {
 }
 
 // ─── Настройка правил ─────────────────────────────────────────────────────────
-// Документация: https://wiki.metacubex.one/ru/config/rules/
+// Документация: https://wiki.metacubex.one/en/config/rules
 
 function setupRules(config) {
   const RULES = [
@@ -444,5 +448,8 @@ function setupRules(config) {
   ];
 
   const profileRules = (config.rules ?? []).filter((r) => !r.startsWith("MATCH,"));
-  config.rules = [...RULES, ...profileRules, `MATCH,${GN.proxy}`];
+  /**
+   * GEOSITE кажется слишком общим, поэтому добавляем его в конец, чтобы не перекрывал более специфичные правила
+   */
+  config.rules = [...RULES, ...profileRules, `GEOSITE,category-ru,${GN.direct}`, `MATCH,${GN.proxy}`];
 }
