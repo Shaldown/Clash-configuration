@@ -178,8 +178,22 @@ function setupGroups(config) {
   const isSubscriptionDefault = (g) =>
     g.type === "select" && g.proxies?.length === proxyNames.length && g.proxies.every((p) => proxyNameSet.has(p));
 
+  const defaultGroupProxies = [];
+
   config["proxy-groups"] ??= [];
-  config["proxy-groups"] = config["proxy-groups"].filter((g) => !isSubscriptionDefault(g));
+  config["proxy-groups"] = config["proxy-groups"].filter((g) => {
+    const isDefault = isSubscriptionDefault(g);
+    if (isDefault) {
+      defaultGroupProxies.push(...g.proxies);
+    }
+    return !isDefault;
+  });
+
+  const allSelectGroup =
+    defaultGroupProxies.length > 0
+      ? { name: GN.allSelect, icon: ICONS.global, type: "select", proxies: defaultGroupProxies }
+      : { ...BASE, name: GN.allSelect, icon: ICONS.global, type: "select", "exclude-type": undefined };
+
   config["proxy-groups"].unshift(
     {
       name: GN.proxy,
@@ -199,7 +213,7 @@ function setupGroups(config) {
     { name: GN.direct, icon: ICONS.direct, type: "select", hidden: true, proxies: ["DIRECT"] },
 
     // Навигация по странам
-    { ...BASE, name: GN.allSelect, icon: ICONS.global, type: "select", "exclude-type": undefined },
+    allSelectGroup,
     { name: GN.countryUrlTest, icon: ICONS.map, type: "select", proxies: countryUrlTestGroups.map((g) => g.name) },
     { name: GN.countryFallback, icon: ICONS.map, type: "select", proxies: countryFallbackGroups.map((g) => g.name) },
 

@@ -3,6 +3,7 @@
 profile:
   store-selected: true
 
+# Внимание: при добавлении тут групп, может поехать сортировка в группе All
 proxy-groups:
   - name: Example
     type: select
