@@ -1,6 +1,23 @@
-// ─── Конфигурация ─────────────────────────────────────────────────────────────
+// ─── Тип устройства ──────────────────────────────────────────────────────────
 
-const CFG = Object.freeze({
+const DEVICE_TYPES = Object.freeze({
+  mobile: "mobile",
+  desktop: "desktop",
+});
+
+const DEVICE_TYPE = DEVICE_TYPES.desktop;
+
+// ─── Конфигурация ─────────────────────────────────────────────────────────────
+const CFG_SMARTPHONE = Object.freeze({
+  testUrl: "https://www.google.com/generate_204",
+  urlTestInterval: 600,
+  fallbackInterval: 300,
+  tolerance: 50,
+  maxFailedTimes: 5,
+  lazy: true,
+});
+
+const CFG_DESKTOP = Object.freeze({
   testUrl: "https://www.google.com/generate_204",
   urlTestInterval: 300,
   fallbackInterval: 180,
@@ -8,6 +25,8 @@ const CFG = Object.freeze({
   maxFailedTimes: 5,
   lazy: false,
 });
+
+const CFG = DEVICE_TYPE === DEVICE_TYPES.mobile ? CFG_SMARTPHONE : CFG_DESKTOP;
 
 // ─── Названия групп ───────────────────────────────────────────────────────────
 
