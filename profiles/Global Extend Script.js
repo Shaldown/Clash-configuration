@@ -237,9 +237,9 @@ function setupGroups(config) {
     { name: GN.countryFallback, icon: ICONS.map, type: "select", proxies: countryFallbackGroups.map((g) => g.name) },
 
     // Выбор для сервисов
-    { name: GN.discord, icon: ICONS.discord, type: "select", proxies: [GN.proxy, GN.direct] },
-    { name: GN.youtube, icon: ICONS.youtube, type: "select", proxies: [GN.proxy, GN.direct] },
-    { name: GN.games, icon: ICONS.games, type: "select", proxies: [GN.proxy, GN.direct] },
+    { name: GN.discord, icon: ICONS.discord, type: "select", proxies: [GN.direct, GN.proxy] },
+    { name: GN.youtube, icon: ICONS.youtube, type: "select", proxies: [GN.direct, GN.proxy] },
+    { name: GN.games, icon: ICONS.games, type: "select", proxies: [GN.direct, GN.proxy] },
 
     // Агрегированные авто-группы (скрыты)
     makeUrlTestGroup(GN.nonRuUrlTest, { "exclude-filter": filterFor(C.Russia, C.Belarus) }),
