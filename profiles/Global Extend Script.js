@@ -13,7 +13,7 @@ const CFG = Object.freeze({
 
 const GN = Object.freeze({
   proxy: "Proxy",
-  direct: "Без Proxy",
+  direct: "Direct",
 
   // Выбор для сервисов
   discord: "Discord",
@@ -21,16 +21,16 @@ const GN = Object.freeze({
   games: "Games",
 
   // Навигация по странам
-  allSelect: "All [MANUAL]",
-  countryUrlTest: "Select country [URL_TEST]",
-  countryFallback: "Select country [FALLBACK]",
+  allSelect: "All [manual]",
+  countryUrlTest: "By country [url-test]",
+  countryFallback: "By country [fallback]",
 
   // Агрегированные авто-группы
-  nonRuUrlTest: "Non RU/BY [URL_TEST]",
-  nonRuFallback: "Non RU/BY [FALLBACK]",
-  allUrlTest: "ALL [URL_TEST]",
-  ruUrlTest: "RU/BY [URL_TEST]",
-  ruFallback: "RU/BY [FALLBACK]",
+  nonRuUrlTest: "Non RU/BY [url-test]",
+  nonRuFallback: "Non RU/BY [fallback]",
+  allUrlTest: "All [url-test]",
+  ruUrlTest: "RU/BY [url-test]",
+  ruFallback: "RU/BY [fallback]",
 });
 
 // ─── Иконки ───────────────────────────────────────────────────────────────────
@@ -160,7 +160,7 @@ function setupGroups(config) {
 
   const countryUrlTestGroups = Object.entries(C)
     .map(([name, country]) =>
-      makeUrlTestGroup(`${name} ${flagFor(country)} [URL_TEST]`, {
+      makeUrlTestGroup(`${name} ${flagFor(country)} [url-test]`, {
         filter: filterFor(country),
       }),
     )
@@ -168,7 +168,7 @@ function setupGroups(config) {
 
   const countryFallbackGroups = Object.entries(C)
     .map(([name, country]) =>
-      makeFallbackGroup(`${name} ${flagFor(country)} [FALLBACK]`, {
+      makeFallbackGroup(`${name} ${flagFor(country)} [fallback]`, {
         filter: filterFor(country),
       }),
     )
