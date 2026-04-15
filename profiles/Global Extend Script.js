@@ -38,6 +38,7 @@ const GN = Object.freeze({
   discord: "Discord",
   youtube: "YouTube",
   games: "Games",
+  gemini: "Gemini",
 
   // Навигация по странам
   allSelect: "All [manual]",
@@ -60,6 +61,7 @@ const ICONS = Object.freeze({
   discord: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Discord.png",
   youtube: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/YouTube.png",
   games: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Game.png",
+  gemini: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/AI.png",
   global: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Global.png",
   map: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Europe_Map.png",
 });
@@ -240,6 +242,14 @@ function setupGroups(config) {
     { name: GN.discord, icon: ICONS.discord, type: "select", proxies: [GN.direct, GN.proxy] },
     { name: GN.youtube, icon: ICONS.youtube, type: "select", proxies: [GN.direct, GN.proxy] },
     { name: GN.games, icon: ICONS.games, type: "select", proxies: [GN.direct, GN.proxy] },
+    {
+      ...BASE,
+      name: GN.gemini,
+      icon: ICONS.gemini,
+      type: "select",
+      proxies: [GN.proxy],
+      "exclude-filter": filterFor(C.Russia, C.Belarus),
+    },
 
     // Агрегированные авто-группы (скрыты)
     makeUrlTestGroup(GN.nonRuUrlTest, { "exclude-filter": filterFor(C.Russia, C.Belarus) }),
@@ -343,6 +353,13 @@ function setupRuleProviders(config) {
       format: "mrs",
       url: "https://cdn.jsdelivr.net/gh/hydraponique/roscomvpn-geosite/release/mihomo/twitch-ads.mrs",
       path: "./rule-sets/twitch-ads.mrs",
+    },
+    gemini: {
+      ...providerCommon,
+      behavior: "classical",
+      format: "yaml",
+      url: "https://raw.githubusercontent.com/Shaldown/Clash-Verge-rev-configuration/refs/heads/main/rule-sets/gemini.yaml",
+      path: "./rule-sets/gemini.yaml",
     },
     "private-domains": {
       ...providerCommon,
@@ -470,6 +487,9 @@ function setupRules(config) {
     `RULE-SET,discord-vc,${GN.discord}`,
     `RULE-SET,discord-domains,${GN.discord}`,
     `PROCESS-NAME-REGEX,(?i).*discord.*,${GN.discord}`,
+
+    // Gemini
+    `RULE-SET,gemini,${GN.gemini}`,
 
     // Обновления и пуши
     `RULE-SET,google-play,${GN.direct}`,
