@@ -1,0 +1,7 @@
+payload:
+  - DOMAIN-SUFFIX, m.pushbr.com
+  - DOMAIN-SUFFIX, aistudio.google.com
+  - DOMAIN-SUFFIX, gemini.google.com
+  - DOMAIN-SUFFIX, generativelanguage.googleapis.com
+  - DOMAIN-SUFFIX, alkalimining-pa.googleapis.com
+  - DOMAIN-SUFFIX, proactivebackend-pa.googleapis.com
