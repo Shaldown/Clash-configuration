@@ -120,15 +120,27 @@ const DNS_CONFIG = {
   nameserver: ["https://8.8.8.8/dns-query", "https://1.1.1.1/dns-query"],
 };
 
+// const AUTH_CREDENTIALS = ["login:password"];
+const AUTH_CREDENTIALS = [];
+
 // ─── Точка входа ─────────────────────────────────────────────────────────────
 
 function main(config) {
+  setupAuthentication(config);
   setupGroups(config);
   setupDns(config);
   setupRuleProviders(config);
   setupRules(config);
   return config;
 }
+
+// ─── Настройка аутентификации ──────────────────────────────────────────────
+
+const setupAuthentication = (config) => {
+  if (AUTH_CREDENTIALS.length) {
+    config.authentication = AUTH_CREDENTIALS;
+  }
+};
 
 // ─── Настройка групп ─────────────────────────────────────────────────────────
 
