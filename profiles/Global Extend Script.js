@@ -39,6 +39,7 @@ const GN = Object.freeze({
   youtube: "YouTube",
   games: "Games",
   gemini: "Gemini",
+  telegram: "Telegram",
 
   // Навигация по странам
   allSelect: "All [manual]",
@@ -64,6 +65,7 @@ const ICONS = Object.freeze({
   gemini: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/AI.png",
   global: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Global.png",
   map: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Europe_Map.png",
+  telegram: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Telegram_X.png",
 });
 
 // ─── Страны ───────────────────────────────────────────────────────────────────
@@ -253,6 +255,7 @@ function setupGroups(config) {
     // Выбор для сервисов
     { name: GN.discord, icon: ICONS.discord, type: "select", proxies: [GN.direct, GN.proxy] },
     { name: GN.youtube, icon: ICONS.youtube, type: "select", proxies: [GN.direct, GN.proxy] },
+    { name: GN.telegram, icon: ICONS.telegram, type: "select", proxies: [GN.direct, GN.proxy] },
     { name: GN.games, icon: ICONS.games, type: "select", proxies: [GN.direct, GN.proxy] },
     {
       ...BASE,
@@ -287,7 +290,7 @@ function setupDns(config) {
 // Документация: https://wiki.metacubex.one/en/config/rule-providers
 
 function setupRuleProviders(config) {
-  const providerCommon = { type: "http", interval: 86400 };
+  const providerCommon = Object.freeze({ type: "http", interval: 86400 });
 
   const RULE_PROVIDERS = {
     local_example: {
@@ -408,6 +411,20 @@ function setupRuleProviders(config) {
       url: "https://raw.githubusercontent.com/Shaldown/Clash-Verge-rev-configuration/refs/heads/main/rule-sets/discord_vc.yaml",
       path: "./rule-sets/discord-vc.yaml",
     },
+    "telegram-ips": {
+      ...providerCommon,
+      behavior: "ipcidr",
+      format: "mrs",
+      url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs",
+      path: "./rule-sets/telegram-ips.mrs",
+    },
+    "telegram-domains": {
+      ...providerCommon,
+      behavior: "domain",
+      format: "mrs",
+      url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/telegram.mrs",
+      path: "./rule-sets/telegram-domains.mrs",
+    },
     "torrent-trackers": {
       ...providerCommon,
       behavior: "domain",
@@ -499,6 +516,11 @@ function setupRules(config) {
     `RULE-SET,discord-vc,${GN.discord}`,
     `RULE-SET,discord-domains,${GN.discord}`,
     `PROCESS-NAME-REGEX,(?i).*discord.*,${GN.discord}`,
+
+    // Telegram
+    `RULE-SET,telegram-ips,${GN.telegram}`,
+    `RULE-SET,telegram-domains,${GN.telegram}`,
+    `PROCESS-NAME-REGEX,(?i).*telegram.*,${GN.telegram}`,
 
     // Gemini
     `RULE-SET,gemini,${GN.gemini}`,
