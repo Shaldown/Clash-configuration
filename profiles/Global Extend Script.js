@@ -152,15 +152,13 @@ function setupAuthentication(config) {
 // ─── Настройка групп ─────────────────────────────────────────────────────────
 
 function setupGroups(config) {
-  // Определяем заранее — нужно для BASE/BASE_AUTO
-  const hasProxyProviders = Object.keys(config["proxy-providers"] ?? {}).length > 0;
-
   const providerNames = Object.keys(config["proxy-providers"] ?? {});
+  const hasProxyProviders = providerNames.length > 0;
 
   const BASE = Object.freeze({
     "exclude-type": "Shadowsocks",
     "include-all-proxies": true,
-    ...(providerNames.length > 0 ? { use: providerNames } : {}),
+    ...(hasProxyProviders ? { use: providerNames } : {}),
   });
 
   const BASE_AUTO = Object.freeze({
@@ -308,12 +306,6 @@ function setupRuleProviders(config) {
   const providerCommon = Object.freeze({ type: "http", interval: 86400 });
 
   const RULE_PROVIDERS = {
-    local_example: {
-      type: "file",
-      path: "./rule-sets/local/example.yaml",
-      behavior: "classical",
-      format: "yaml",
-    },
     "category-ru": {
       ...providerCommon,
       behavior: "domain",
