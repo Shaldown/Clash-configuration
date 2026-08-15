@@ -8,6 +8,7 @@ const DEVICE_TYPES = Object.freeze({
 const DEVICE_TYPE = DEVICE_TYPES.desktop;
 
 // ─── Конфигурация ─────────────────────────────────────────────────────────────
+
 const CFG_SMARTPHONE = Object.freeze({
   testUrl: "https://www.google.com/generate_204",
   urlTestInterval: 600,
@@ -116,12 +117,16 @@ const C = Object.freeze({
   USA: { patterns: ["\\bUS\\b", "\\bUSA\\b", "Америка", "America", "🇺🇸"] },
 });
 
+// ─── DNS ──────────────────────────────────────────────────────────────────────
+
 const DNS_CONFIG = {
   "direct-nameserver": ["https://77.88.8.8/dns-query", "https://8.8.8.8/dns-query"],
   "proxy-server-nameserver": ["https://1.1.1.1/dns-query", "https://8.8.8.8/dns-query"],
   nameserver: ["https://8.8.8.8/dns-query", "https://1.1.1.1/dns-query"],
 };
 
+// ─── Аутентификация ───────────────────────────────────────────────────────────
+// Раскомментировать и заполнить для включения:
 // const AUTH_CREDENTIALS = ["login:password"];
 const AUTH_CREDENTIALS = [];
 
@@ -136,20 +141,26 @@ function main(config) {
   return config;
 }
 
-// ─── Настройка аутентификации ──────────────────────────────────────────────
+// ─── Настройка аутентификации ─────────────────────────────────────────────────
 
-const setupAuthentication = (config) => {
+function setupAuthentication(config) {
   if (AUTH_CREDENTIALS.length) {
     config.authentication = AUTH_CREDENTIALS;
   }
-};
+}
 
 // ─── Настройка групп ─────────────────────────────────────────────────────────
 
 function setupGroups(config) {
+  // Определяем заранее — нужно для BASE/BASE_AUTO
+  const hasProxyProviders = Object.keys(config["proxy-providers"] ?? {}).length > 0;
+
+  const providerNames = Object.keys(config["proxy-providers"] ?? {});
+
   const BASE = Object.freeze({
     "exclude-type": "Shadowsocks",
     "include-all-proxies": true,
+    ...(providerNames.length > 0 ? { use: providerNames } : {}),
   });
 
   const BASE_AUTO = Object.freeze({
@@ -176,18 +187,15 @@ function setupGroups(config) {
   }
 
   function makeFallbackGroup(name, overrides = {}) {
-    return {
-      ...BASE_AUTO,
-      name,
-      type: "fallback",
-      interval: CFG.fallbackInterval,
-      ...overrides,
-    };
+    return { ...BASE_AUTO, name, type: "fallback", interval: CFG.fallbackInterval, ...overrides };
   }
 
   const proxyNames = (config.proxies ?? []).map((p) => p.name);
 
+  // Если есть proxy-providers — не фильтруем страновые группы:
+  // скрипт не может заглянуть внутрь провайдера, фильтрацию сделает Mihomo в рантайме
   function hasMatchingProxies(group) {
+    if (hasProxyProviders) return true;
     if (!group.filter) return true;
     const regex = new RegExp(group.filter.replace("(?i)", ""), "i");
     return proxyNames.some((name) => regex.test(name));
@@ -195,17 +203,13 @@ function setupGroups(config) {
 
   const countryUrlTestGroups = Object.entries(C)
     .map(([name, country]) =>
-      makeUrlTestGroup(`${name} ${flagFor(country)} [url-test]`, {
-        filter: filterFor(country),
-      }),
+      makeUrlTestGroup(`${name} ${flagFor(country)} [url-test]`, { filter: filterFor(country) }),
     )
     .filter(hasMatchingProxies);
 
   const countryFallbackGroups = Object.entries(C)
     .map(([name, country]) =>
-      makeFallbackGroup(`${name} ${flagFor(country)} [fallback]`, {
-        filter: filterFor(country),
-      }),
+      makeFallbackGroup(`${name} ${flagFor(country)} [fallback]`, { filter: filterFor(country) }),
     )
     .filter(hasMatchingProxies);
 
@@ -217,11 +221,11 @@ function setupGroups(config) {
 
   config["proxy-groups"] ??= [];
   config["proxy-groups"] = config["proxy-groups"].filter((g) => {
-    const isDefault = isSubscriptionDefault(g);
-    if (isDefault) {
+    if (isSubscriptionDefault(g)) {
       defaultGroupProxies.push(...g.proxies);
+      return false;
     }
-    return !isDefault;
+    return true;
   });
 
   const allSelectGroup =
@@ -236,8 +240,8 @@ function setupGroups(config) {
       type: "select",
       proxies: [
         GN.allSelect,
-        GN.countryUrlTest,
-        GN.countryFallback,
+        ...(countryUrlTestGroups.length > 0 ? [GN.countryUrlTest] : []),
+        ...(countryFallbackGroups.length > 0 ? [GN.countryFallback] : []),
         GN.nonRuUrlTest,
         GN.nonRuFallback,
         GN.allUrlTest,
@@ -249,8 +253,19 @@ function setupGroups(config) {
 
     // Навигация по странам
     allSelectGroup,
-    { name: GN.countryUrlTest, icon: ICONS.map, type: "select", proxies: countryUrlTestGroups.map((g) => g.name) },
-    { name: GN.countryFallback, icon: ICONS.map, type: "select", proxies: countryFallbackGroups.map((g) => g.name) },
+    ...(countryUrlTestGroups.length > 0
+      ? [{ name: GN.countryUrlTest, icon: ICONS.map, type: "select", proxies: countryUrlTestGroups.map((g) => g.name) }]
+      : []),
+    ...(countryFallbackGroups.length > 0
+      ? [
+          {
+            name: GN.countryFallback,
+            icon: ICONS.map,
+            type: "select",
+            proxies: countryFallbackGroups.map((g) => g.name),
+          },
+        ]
+      : []),
 
     // Выбор для сервисов
     { name: GN.discord, icon: ICONS.discord, type: "select", proxies: [GN.direct, GN.proxy] },
@@ -518,7 +533,7 @@ function setupRules(config) {
     `PROCESS-NAME-REGEX,(?i).*discord.*,${GN.discord}`,
 
     // Telegram
-    `RULE-SET,telegram-ips,${GN.telegram}`,
+    `RULE-SET,telegram-ips,${GN.telegram},no-resolve`,
     `RULE-SET,telegram-domains,${GN.telegram}`,
     `PROCESS-NAME-REGEX,(?i).*telegram.*,${GN.telegram}`,
 
@@ -541,8 +556,6 @@ function setupRules(config) {
   ];
 
   const profileRules = (config.rules ?? []).filter((r) => !r.startsWith("MATCH,"));
-  /**
-   * GEOSITE кажется слишком общим, поэтому добавляем его в конец, чтобы не перекрывал более специфичные правила
-   */
+  // GEOSITE добавляется в конец, чтобы не перекрывал более специфичные правила выше
   config.rules = [...RULES, ...profileRules, `GEOSITE,category-ru,${GN.direct}`, `MATCH,${GN.proxy}`];
 }
