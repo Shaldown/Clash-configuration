@@ -532,6 +532,9 @@ function setupRules(config) {
     // Gemini
     `RULE-SET,gemini,${GN.gemini}`,
 
+    // VK Видео на Android — до СНГ-правил, иначе домены VK уйдут в Direct
+    `PROCESS-NAME,org.xjiop.vkvideoapp,${GN.proxy}`,
+
     // Обновления и пуши
     `RULE-SET,google-play,${GN.direct}`,
     `RULE-SET,apple,${GN.direct}`,
