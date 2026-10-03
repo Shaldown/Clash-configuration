@@ -1,0 +1,24 @@
+payload:
+  - DOMAIN-SUFFIX,anthropic.com
+  - DOMAIN-REGEX,(?i)(^|\.)claude\.(ai|app|com|dev)$
+  - DOMAIN-SUFFIX,claudeusercontent.com
+  - DOMAIN-SUFFIX,claudemcpcontent.com
+  - DOMAIN-SUFFIX,claudemcpclient.com
+  - DOMAIN-SUFFIX,clau.de
+  - DOMAIN,servd-anthropic-website.b-cdn.net
+
+  # This rule also routes traffic from other applications that use this shared storage host.
+  - DOMAIN,storage.googleapis.com
+
+  # These hosts handle security challenges and support.
+  - DOMAIN,challenges.cloudflare.com
+  - DOMAIN,api-iam.intercom.io
+  - DOMAIN,widget.intercom.io
+  - DOMAIN,js.intercomcdn.com
+
+  # CLI telemetry needs the same route when enabled.
+  - DOMAIN,http-intake.logs.us5.datadoghq.com
+  - DOMAIN,browser-intake-us5-datadoghq.com
+
+  - 'PROCESS-NAME-REGEX,(?i)^claude(?:-desktop| helper(?: \([^)]+\))?)?(?:\.exe)?$'
+  - PROCESS-NAME,com.anthropic.claude

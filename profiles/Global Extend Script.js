@@ -40,6 +40,7 @@ const GN = Object.freeze({
   youtube: "YouTube",
   games: "Games",
   gemini: "Gemini",
+  claude: "Claude",
   telegram: "Telegram",
 
   // Навигация по странам
@@ -64,6 +65,7 @@ const ICONS = Object.freeze({
   youtube: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/YouTube.png",
   games: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Game.png",
   gemini: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/AI.png",
+  claude: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/AI.png",
   global: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Global.png",
   map: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Europe_Map.png",
   telegram: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Telegram_X.png",
@@ -133,6 +135,8 @@ const AUTH_CREDENTIALS = [];
 // ─── Точка входа ─────────────────────────────────────────────────────────────
 
 function main(config) {
+  config.profile ??= {};
+  config.profile["store-selected"] = true;
   setupAuthentication(config);
   setupGroups(config);
   setupDns(config);
@@ -154,6 +158,7 @@ function setupAuthentication(config) {
 function setupGroups(config) {
   const providerNames = Object.keys(config["proxy-providers"] ?? {});
   const hasProxyProviders = providerNames.length > 0;
+  const claudeExcludedTypes = "Direct|Compatible|Pass|Rematch|Dns";
 
   const BASE = Object.freeze({
     "exclude-type": "Shadowsocks",
@@ -171,6 +176,8 @@ function setupGroups(config) {
 
   const buildFilter = (...patternArrays) => `(?i)(${patternArrays.flat().join("|")})`;
   const filterFor = (...countries) => buildFilter(...countries.map((c) => c.patterns));
+  const claudeExcludedFilter = filterFor(C.Russia, C.Belarus);
+  const ruByRegex = new RegExp(claudeExcludedFilter.replace("(?i)", ""), "i");
   const flagFor = (country) => country.patterns.find((p) => /^\p{Emoji_Presentation}/u.test(p)) ?? "";
 
   function makeUrlTestGroup(name, overrides = {}) {
@@ -210,6 +217,16 @@ function setupGroups(config) {
       makeFallbackGroup(`${name} ${flagFor(country)} [fallback]`, { filter: filterFor(country) }),
     )
     .filter(hasMatchingProxies);
+
+  // У Claude свои страновые группы, чтобы пустая подписка блокировала соединение.
+  const claudeCountryGroups = countryFallbackGroups.filter((group) => !ruByRegex.test(group.name)).map((group) => {
+    return {
+      ...group,
+      name: `${GN.claude} / ${group.name}`,
+      "exclude-type": `${group["exclude-type"]}|${claudeExcludedTypes}`,
+      "empty-fallback": "REJECT",
+    };
+  });
 
   const proxyNameSet = new Set(proxyNames);
   const isSubscriptionDefault = (g) =>
@@ -266,6 +283,17 @@ function setupGroups(config) {
       : []),
 
     // Выбор для сервисов
+    {
+      ...BASE,
+      name: GN.claude,
+      icon: ICONS.claude,
+      type: "select",
+      proxies: ["REJECT", ...claudeCountryGroups.map((group) => group.name)],
+      "exclude-filter": claudeExcludedFilter,
+      "exclude-type": claudeExcludedTypes,
+      "default-selected": "REJECT",
+      "empty-fallback": "REJECT",
+    },
     { name: GN.discord, icon: ICONS.discord, type: "select", proxies: [GN.direct, GN.proxy] },
     { name: GN.youtube, icon: ICONS.youtube, type: "select", proxies: [GN.direct, GN.proxy] },
     { name: GN.telegram, icon: ICONS.telegram, type: "select", proxies: [GN.direct, GN.proxy] },
@@ -289,6 +317,7 @@ function setupGroups(config) {
     // Страны (скрыты)
     ...countryUrlTestGroups,
     ...countryFallbackGroups,
+    ...claudeCountryGroups,
   );
 }
 
@@ -306,6 +335,13 @@ function setupRuleProviders(config) {
   const providerCommon = Object.freeze({ type: "http", interval: 86400 });
 
   const RULE_PROVIDERS = {
+    claude: {
+      ...providerCommon,
+      behavior: "classical",
+      format: "yaml",
+      url: "https://raw.githubusercontent.com/Shaldown/Clash-Verge-rev-configuration/refs/heads/main/rule-sets/claude.yaml",
+      path: "./rule-sets/claude.yaml",
+    },
     "category-ru": {
       ...providerCommon,
       behavior: "domain",
@@ -508,6 +544,9 @@ function setupRules(config) {
 
     // Блокировка QUIC (для VLESS Reality)
     `RULE-SET,quic,REJECT`,
+
+    // Claude
+    `RULE-SET,claude,${GN.claude}`,
 
     // YouTube
     `RULE-SET,youtube,${GN.youtube}`,
