@@ -18,6 +18,21 @@ The sole Claude routing rule follows the existing global QUIC rejection rule. Ga
 
 `empty-fallback` requires Mihomo **1.19.27 or newer**. The generated configuration was checked with the locally installed **1.19.31** core. Check FLClash's bundled core version before applying it. These properties are documented in [Mihomo's proxy group fields](https://wiki.metacubex.one/en/config/proxy-groups/) and [the 1.19.27 release](https://github.com/MetaCubeX/mihomo/releases/tag/v1.19.27).
 
+## DNS routing
+
+The DNS settings in `profiles/Global Extend Script.js` use explicit proxy-group suffixes on the DoH URLs. Selecting a different general server does not change the DNS route for domains in the `claude` provider.
+
+| Setting | Route and purpose |
+| --- | --- |
+| `nameserver` | Resolve ordinary names through `Proxy` |
+| `nameserver-policy` for `rule-set:claude` | Resolve matching domains through the selected `Claude` server |
+| `direct-nameserver` | Preserve direct resolution for direct connections |
+| `proxy-server-nameserver` | Preserve separate resolution of proxy-server names so establishing the proxy does not depend on that same proxy |
+
+The DNS policy uses the domain entries of the classical `claude` provider. Process-only matches do not select this DNS policy: an otherwise unmatched domain uses the default `nameserver`, even if its application connection selects `Claude`. The policy controls DNS handled by Mihomo; independent Windows resolver queries require separate observation. System Proxy does not provide system-wide capture or a kill switch. See [Mihomo DNS configuration](https://wiki.metacubex.one/en/config/dns/).
+
+Validated on 2026-10-15 with Mihomo 1.19.31 in Windows System Proxy mode without TUN: a fresh TXT query under `anthropic.com` through the core's `/dns/query` API returned the expected NXDOMAIN. Internal connections to both configured DoH services used the selected Claude VLESS server and transferred request and response bytes. This verifies that resolver path; router enforcement and failure behavior remain untested. DNS-server countries reported by a leak test need not match the proxy's country because resolver infrastructure and anycast routing are separate from the client exit.
+
 ## Endpoint coverage
 
 Checked on **2026-10-03**. All 16 Claude domain and application rules live in `rule-sets/claude.yaml`. One HTTP classical YAML provider uses `path: ./rule-sets/claude.yaml` and the matching repository URL; its refresh interval is one day, like the other providers. The domain list is not embedded or duplicated in the script. There is no special routing for rule-file loading failures.

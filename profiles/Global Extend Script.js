@@ -124,7 +124,13 @@ const C = Object.freeze({
 const DNS_CONFIG = {
   "direct-nameserver": ["https://77.88.8.8/dns-query", "https://8.8.8.8/dns-query"],
   "proxy-server-nameserver": ["https://1.1.1.1/dns-query", "https://8.8.8.8/dns-query"],
-  nameserver: ["https://8.8.8.8/dns-query", "https://1.1.1.1/dns-query"],
+  nameserver: ["https://8.8.8.8/dns-query#Proxy", "https://1.1.1.1/dns-query#Proxy"],
+  "nameserver-policy": {
+    "rule-set:claude": [
+      "https://8.8.8.8/dns-query#Claude",
+      "https://1.1.1.1/dns-query#Claude",
+    ],
+  },
 };
 
 // ─── Аутентификация ───────────────────────────────────────────────────────────
