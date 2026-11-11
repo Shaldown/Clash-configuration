@@ -1,0 +1,34 @@
+payload:
+  # ChatGPT / OpenAI
+  - DOMAIN-SUFFIX,chatgpt.com
+  - DOMAIN-SUFFIX,openai.com
+
+  # Static files, uploads, telemetry
+  - DOMAIN-SUFFIX,oaistatic.com
+  - DOMAIN-SUFFIX,oaiusercontent.com
+  - DOMAIN-SUFFIX,oaistatsig.com
+  - DOMAIN,cdn.openaimerge.com
+
+  # Authentication (WorkOS)
+  - DOMAIN,cdn.workos.com
+  - DOMAIN,forwarder.workos.com
+  - DOMAIN,frontend-apps-multi-region.workos.com
+  - DOMAIN,setup.workos.com
+  - DOMAIN,images.workoscdn.com
+  - DOMAIN,workos.imgix.net
+
+  # Security challenges
+  - DOMAIN,challenges.cloudflare.com
+
+  # Support (shared with other applications)
+  - DOMAIN-SUFFIX,intercom.io
+  - DOMAIN-SUFFIX,intercomcdn.com
+
+  # Payments and email
+  - DOMAIN,js.stripe.com
+  - DOMAIN-SUFFIX,ct.sendgrid.net
+
+  # Diagnostics
+  - DOMAIN,o207216.ingest.sentry.io
+  - DOMAIN,o33249.ingest.sentry.io
+  - DOMAIN,rum.browser-intake-datadoghq.com

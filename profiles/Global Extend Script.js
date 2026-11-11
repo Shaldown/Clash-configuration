@@ -122,15 +122,10 @@ const C = Object.freeze({
 // ─── DNS ──────────────────────────────────────────────────────────────────────
 
 const DNS_CONFIG = {
-  "direct-nameserver": ["https://77.88.8.8/dns-query", "https://8.8.8.8/dns-query"],
-  "proxy-server-nameserver": ["https://1.1.1.1/dns-query", "https://8.8.8.8/dns-query"],
-  nameserver: ["https://8.8.8.8/dns-query#Proxy", "https://1.1.1.1/dns-query#Proxy"],
-  "nameserver-policy": {
-    "rule-set:claude": [
-      "https://8.8.8.8/dns-query#Claude",
-      "https://1.1.1.1/dns-query#Claude",
-    ],
-  },
+  "default-nameserver": ["192.168.8.1"],
+  nameserver: ["192.168.8.1"],
+  "direct-nameserver": ["192.168.8.1"],
+  "proxy-server-nameserver": ["192.168.8.1"],
 };
 
 // ─── Аутентификация ───────────────────────────────────────────────────────────
@@ -225,14 +220,16 @@ function setupGroups(config) {
     .filter(hasMatchingProxies);
 
   // У Claude свои страновые группы, чтобы пустая подписка блокировала соединение.
-  const claudeCountryGroups = countryFallbackGroups.filter((group) => !ruByRegex.test(group.name)).map((group) => {
-    return {
-      ...group,
-      name: `${GN.claude} / ${group.name}`,
-      "exclude-type": `${group["exclude-type"]}|${claudeExcludedTypes}`,
-      "empty-fallback": "REJECT",
-    };
-  });
+  const claudeCountryGroups = countryFallbackGroups
+    .filter((group) => !ruByRegex.test(group.name))
+    .map((group) => {
+      return {
+        ...group,
+        name: `${GN.claude} / ${group.name}`,
+        "exclude-type": `${group["exclude-type"]}|${claudeExcludedTypes}`,
+        "empty-fallback": "REJECT",
+      };
+    });
 
   const proxyNameSet = new Set(proxyNames);
   const isSubscriptionDefault = (g) =>
@@ -309,7 +306,7 @@ function setupGroups(config) {
       name: GN.gemini,
       icon: ICONS.gemini,
       type: "select",
-      proxies: [GN.proxy],
+      proxies: [GN.direct, GN.proxy],
       "exclude-filter": filterFor(C.Russia, C.Belarus),
     },
 
@@ -332,6 +329,28 @@ function setupGroups(config) {
 function setupDns(config) {
   config.dns ??= {};
   Object.assign(config.dns, DNS_CONFIG);
+
+  // Исключаем ChatGPT и Claude из Fake-IP,
+  // чтобы правила AND могли сравнивать реальный IP со Smart DNS.
+  config.dns["fake-ip-filter"] = [...(config.dns["fake-ip-filter"] ?? []), "rule-set:chatgpt", "rule-set:claude"];
+
+  // Для ChatGPT и Claude используем Smart DNS роутера по TCP.
+  // Это позволяет избежать наблюдавшихся тайм-аутов DNS по UDP.
+  //
+  // Если Smart DNS возвращает свой ip, правило AND
+  // направляет соединение через DIRECT.
+  // Иначе используется резервное правило (VPN / REJECT).
+  //
+  // Домены берём из существующих rule-set, чтобы не дублировать
+  // списки и автоматически учитывать их обновления.
+  const smartDns = "tcp://192.168.8.1:53";
+
+  config.dns["nameserver-policy"] ??= {};
+
+  Object.assign(config.dns["nameserver-policy"], {
+    "rule-set:chatgpt": smartDns,
+    "rule-set:claude": smartDns,
+  });
 }
 
 // ─── Настройка провайдеров правил ────────────────────────────────────────────
@@ -347,6 +366,13 @@ function setupRuleProviders(config) {
       format: "yaml",
       url: "https://raw.githubusercontent.com/Shaldown/Clash-Verge-rev-configuration/refs/heads/main/rule-sets/claude.yaml",
       path: "./rule-sets/claude.yaml",
+    },
+    chatgpt: {
+      ...providerCommon,
+      behavior: "classical",
+      format: "yaml",
+      url: "https://raw.githubusercontent.com/Shaldown/Clash-Verge-rev-configuration/refs/heads/main/rule-sets/chatgpt.yaml",
+      path: "./rule-sets/chatgpt.yaml",
     },
     "category-ru": {
       ...providerCommon,
@@ -552,14 +578,25 @@ function setupRules(config) {
     `RULE-SET,quic,REJECT`,
 
     // Claude
+    // Claude: Smart DNS, если адрес указывает на немецкий прокси
+    // !!! ВСТАВЬТЕ СЮДА DNS IP !!!
+    `AND,((RULE-SET,claude),(IP-CIDR,XXX.XXX.XXX.XXX/32)),${GN.direct}`,
+    // Остальной Claude — через VPN или REJECT
     `RULE-SET,claude,${GN.claude}`,
+
+    // ChatGPT
+    // ChatGPT: Smart DNS, если адрес указывает на немецкий прокси
+    // !!! ВСТАВЬТЕ СЮДА DNS IP !!!
+    `AND,((RULE-SET,chatgpt),(IP-CIDR,XXX.XXX.XXX.XXX/32)),${GN.direct}`,
+    // Остальной ChatGPT — через VPN
+    `RULE-SET,chatgpt,${GN.proxy}`,
 
     // YouTube
     `RULE-SET,youtube,${GN.youtube}`,
     `PROCESS-NAME-REGEX,(?i).*youtube.*,${GN.youtube}`,
 
     // Twitch
-    `RULE-SET,twitch-ads,${GN.proxy}`,
+    `RULE-SET,twitch-ads,${GN.direct}`,
     `RULE-SET,twitch,${GN.direct}`,
 
     // Discord
